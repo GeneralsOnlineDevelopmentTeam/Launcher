@@ -180,6 +180,7 @@ namespace LauncherWinUI.Pages
             PanelGraphics.Visibility = Visibility.Collapsed;
             PanelSocial.Visibility = Visibility.Collapsed;
             PanelNetwork.Visibility = Visibility.Collapsed;
+            PanelDataPacks.Visibility = Visibility.Collapsed;
             PanelPlugins.Visibility = Visibility.Collapsed;
 
             if (ReferenceEquals(sender, rbCamera)) PanelCamera.Visibility = Visibility.Visible;
@@ -188,6 +189,7 @@ namespace LauncherWinUI.Pages
             else if (ReferenceEquals(sender, rbGraphics)) PanelGraphics.Visibility = Visibility.Visible;
             else if (ReferenceEquals(sender, rbSocial)) PanelSocial.Visibility = Visibility.Visible;
             else if (ReferenceEquals(sender, rbNetwork)) PanelNetwork.Visibility = Visibility.Visible;
+            else if (ReferenceEquals(sender, rbDataPacks)) PanelDataPacks.Visibility = Visibility.Visible;
             else if (ReferenceEquals(sender, rbPlugins))
             {
                 PanelPlugins.Visibility = Visibility.Visible;
@@ -524,6 +526,8 @@ namespace LauncherWinUI.Pages
                 cmbHTTPVersion.SelectedIndex = httpVer < cmbHTTPVersion.Items.Count ? httpVer : 0;
                 chkAlternativeEndpoint.IsChecked = _settings.network.use_alternative_endpoint;
 
+                chkUseCommunityDataPatch.IsChecked = _settings.data_packs.use_community_data_patch;
+
                 LoadIniSettings();
                 
                 // If anticheat was empty, default to first plugin and save
@@ -660,6 +664,8 @@ namespace LauncherWinUI.Pages
 
             _settings.network.http_version = cmbHTTPVersion.SelectedIndex;
             _settings.network.use_alternative_endpoint = chkAlternativeEndpoint.IsChecked == true;
+
+            _settings.data_packs.use_community_data_patch = chkUseCommunityDataPatch.IsChecked == true;
 
             if (cmbAnticheatPlugin.SelectedItem is ComboBoxItem pluginItem)
                 _settings.plugins.anticheat = pluginItem.Tag?.ToString() ?? "";

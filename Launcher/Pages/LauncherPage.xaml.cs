@@ -314,7 +314,7 @@ namespace LauncherWinUI.Pages
             }
         }
 
-        private void BtnPlay_Click(object sender, RoutedEventArgs e)
+        private async void BtnPlay_Click(object sender, RoutedEventArgs e)
         {
             try
             {
@@ -358,12 +358,17 @@ namespace LauncherWinUI.Pages
 
                 var startedProcess = Process.Start(exe, arguments);
 
+                // Hide the launcher while the game runs, then exit once the game closes.
                 Application.Current.MainWindow?.Hide();
-                startedProcess?.WaitForExit();
+
+                if (startedProcess != null)
+                    await startedProcess.WaitForExitAsync();
+
                 Application.Current.Shutdown();
             }
             catch (Exception ex)
             {
+                Application.Current.MainWindow?.Show();
                 MessageBox.Show($"Failed to launch game: {ex.Message}", "Error",
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }

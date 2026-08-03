@@ -32,6 +32,10 @@ namespace LauncherWinUI.Models
         public int http_version { get; set; } = 0;
         public bool use_alternative_endpoint { get; set; } = false;
     }
+    public class GameSettingsFile_DataPacks
+    {
+        public bool use_community_data_patch { get; set; } = true;
+    }
     public class GameSettingsFile_Plugins
     {
         public string anticheat { get; set; } = "";
@@ -43,6 +47,7 @@ namespace LauncherWinUI.Models
         public GameSettingsFile_Render render { get; set; } = new();
         public GameSettingsFile_Social social { get; set; } = new();
         public GameSettingsFile_Network network { get; set; } = new();
+        public GameSettingsFile_DataPacks data_packs { get; set; } = new();
         public GameSettingsFile_Plugins plugins { get; set; } = new();
     }
     public class LauncherSettingsFile

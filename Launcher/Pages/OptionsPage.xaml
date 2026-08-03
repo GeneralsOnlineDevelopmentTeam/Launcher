@@ -185,6 +185,8 @@
                              Style="{StaticResource NavTabStyle}" Checked="Tab_Checked"/>
                 <RadioButton x:Name="rbNetwork" Content="NETWORK" GroupName="OptionsTabs"
                              Style="{StaticResource NavTabStyle}" Checked="Tab_Checked"/>
+                <RadioButton x:Name="rbDataPacks" Content="DATA PACKS" GroupName="OptionsTabs"
+                             Style="{StaticResource NavTabStyle}" Checked="Tab_Checked"/>
                 <RadioButton x:Name="rbPlugins" Content="PLUGINS" GroupName="OptionsTabs"
                              Style="{StaticResource NavTabStyle}" Checked="Tab_Checked"/>
             </StackPanel>
@@ -512,6 +514,15 @@
                         </ScrollViewer>
                     </Border>
 
+                </StackPanel>
+
+                <!-- DATA PACKS -->
+                <StackPanel x:Name="PanelDataPacks" Visibility="Collapsed">
+                    <TextBlock Text="DATA PACKS" Style="{StaticResource SectionHeaderStyle}"/>
+                    <TextBlock Text="We recommend enabling this if you are playing the unmodified game, or DISABLING it if you are playing with a modification."
+                               Foreground="#E0A030" FontSize="12" TextWrapping="Wrap"
+                               Margin="0,0,0,8"/>
+                    <CheckBox x:Name="chkUseCommunityDataPatch" Content="Use Community Data Patch"/>
                 </StackPanel>
 
                 <!-- PLUGINS -->
