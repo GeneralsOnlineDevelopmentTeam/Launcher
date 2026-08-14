@@ -329,8 +329,6 @@ namespace LauncherWinUI.Pages
                 if (LaunchOptions.Windowed && !hasXRes) { argParts.Add("-xres"); argParts.Add(LaunchOptions.WindowedWidth.ToString()); }
                 if (LaunchOptions.Windowed && !hasYRes) { argParts.Add("-yres"); argParts.Add(LaunchOptions.WindowedHeight.ToString()); }
 
-                string arguments = string.Join(" ", argParts);
-
                 bool isEasyAntiCheat = false;
                 try
                 {
@@ -356,7 +354,11 @@ namespace LauncherWinUI.Pages
                 else
                     exe = isEasyAntiCheat ? "EAC_LaunchGeneralsOnline.exe" : "GeneralsOnlineZH_60.exe";
 
-                var startedProcess = Process.Start(exe, arguments);
+                var startInfo = new ProcessStartInfo(exe);
+                foreach (string argument in argParts)
+                    startInfo.ArgumentList.Add(argument);
+
+                var startedProcess = Process.Start(startInfo);
 
                 // Hide the launcher while the game runs, then exit once the game closes.
                 Application.Current.MainWindow?.Hide();
