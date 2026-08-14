@@ -322,10 +322,14 @@ namespace LauncherWinUI.Pages
                 bool hasWin  = incoming.Any(a => a.Equals("-win",  StringComparison.OrdinalIgnoreCase));
                 bool hasXRes = incoming.Any(a => a.Equals("-xres", StringComparison.OrdinalIgnoreCase));
                 bool hasYRes = incoming.Any(a => a.Equals("-yres", StringComparison.OrdinalIgnoreCase));
+                bool fullscreenOverride = incoming.Any(a => a.Equals("-fullscreen", StringComparison.OrdinalIgnoreCase));
 
-                var argParts = incoming.ToList();
+                var argParts = incoming
+                    .Where(a => !a.Equals("-fullscreen", StringComparison.OrdinalIgnoreCase)
+                        && (!fullscreenOverride || !a.Equals("-win", StringComparison.OrdinalIgnoreCase)))
+                    .ToList();
 
-                if (LaunchOptions.Windowed && !hasWin)  argParts.Add("-win");
+                if (LaunchOptions.Windowed && !fullscreenOverride && !hasWin) argParts.Add("-win");
                 if (LaunchOptions.Windowed && !hasXRes) { argParts.Add("-xres"); argParts.Add(LaunchOptions.WindowedWidth.ToString()); }
                 if (LaunchOptions.Windowed && !hasYRes) { argParts.Add("-yres"); argParts.Add(LaunchOptions.WindowedHeight.ToString()); }
 
