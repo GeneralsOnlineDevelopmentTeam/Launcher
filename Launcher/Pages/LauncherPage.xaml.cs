@@ -322,14 +322,16 @@ namespace LauncherWinUI.Pages
                 bool hasWin  = incoming.Any(a => a.Equals("-win",  StringComparison.OrdinalIgnoreCase));
                 bool hasXRes = incoming.Any(a => a.Equals("-xres", StringComparison.OrdinalIgnoreCase));
                 bool hasYRes = incoming.Any(a => a.Equals("-yres", StringComparison.OrdinalIgnoreCase));
+                bool fullscreenOverride = incoming.Any(a => a.Equals("-fullscreen", StringComparison.OrdinalIgnoreCase));
 
-                var argParts = incoming.ToList();
+                var argParts = incoming
+                    .Where(a => !a.Equals("-fullscreen", StringComparison.OrdinalIgnoreCase)
+                        && (!fullscreenOverride || !a.Equals("-win", StringComparison.OrdinalIgnoreCase)))
+                    .ToList();
 
-                if (LaunchOptions.Windowed && !hasWin)  argParts.Add("-win");
+                if (LaunchOptions.Windowed && !fullscreenOverride && !hasWin) argParts.Add("-win");
                 if (LaunchOptions.Windowed && !hasXRes) { argParts.Add("-xres"); argParts.Add(LaunchOptions.WindowedWidth.ToString()); }
                 if (LaunchOptions.Windowed && !hasYRes) { argParts.Add("-yres"); argParts.Add(LaunchOptions.WindowedHeight.ToString()); }
-
-                string arguments = string.Join(" ", argParts);
 
                 bool isEasyAntiCheat = false;
                 try
@@ -356,7 +358,11 @@ namespace LauncherWinUI.Pages
                 else
                     exe = isEasyAntiCheat ? "EAC_LaunchGeneralsOnline.exe" : "GeneralsOnlineZH_60.exe";
 
-                var startedProcess = Process.Start(exe, arguments);
+                var startInfo = new ProcessStartInfo(exe);
+                foreach (string argument in argParts)
+                    startInfo.ArgumentList.Add(argument);
+
+                var startedProcess = Process.Start(startInfo);
 
                 // Hide the launcher while the game runs, then exit once the game closes.
                 Application.Current.MainWindow?.Hide();
