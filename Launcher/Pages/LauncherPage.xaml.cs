@@ -1,4 +1,5 @@
 using LauncherWinUI.Models;
+using LauncherWinUI.Services;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -131,13 +132,9 @@ namespace LauncherWinUI.Pages
         {
             try
             {
-                string filePath = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                    "Command and Conquer Generals Zero Hour Data",
-                    "GeneralsOnlineData",
-                    "settings.json");
+                string? filePath = GameDataPathService.GetGeneralsOnlineFilePath("settings.json");
 
-                if (File.Exists(filePath))
+                if (filePath != null && File.Exists(filePath))
                 {
                     var settings = System.Text.Json.JsonSerializer.Deserialize<GameSettingsFile>(
                         File.ReadAllText(filePath));
@@ -173,11 +170,8 @@ namespace LauncherWinUI.Pages
 
         private void CreateGODataFolder()
         {
-            string path = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                "Command and Conquer Generals Zero Hour Data",
-                "GeneralsOnlineData");
-            if (!Directory.Exists(path))
+            string? path = GameDataPathService.GeneralsOnlineDataPath;
+            if (path != null && !Directory.Exists(path))
                 Directory.CreateDirectory(path);
         }
 
@@ -185,13 +179,13 @@ namespace LauncherWinUI.Pages
         {
             try
             {
-                string filePath = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                    "Command and Conquer Generals Zero Hour Data",
-                    "GeneralsOnlineData",
-                    "launcher.json");
+                string? filePath = GameDataPathService.GetGeneralsOnlineFilePath("launcher.json");
 
-                if (!File.Exists(filePath))
+                if (filePath == null)
+                {
+                    _launcherSettings = new LauncherSettingsFile();
+                }
+                else if (!File.Exists(filePath))
                 {
                     _launcherSettings = new LauncherSettingsFile();
                     File.WriteAllText(filePath, System.Text.Json.JsonSerializer.Serialize(
@@ -221,13 +215,9 @@ namespace LauncherWinUI.Pages
         {
             try
             {
-                string settingsPath = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                    "Command and Conquer Generals Zero Hour Data",
-                    "GeneralsOnlineData",
-                    "settings.json");
+                string? settingsPath = GameDataPathService.GetGeneralsOnlineFilePath("settings.json");
 
-                if (!File.Exists(settingsPath))
+                if (settingsPath == null || !File.Exists(settingsPath))
                     return;
 
                 var settings = System.Text.Json.JsonSerializer.Deserialize<GameSettingsFile>(
@@ -276,11 +266,9 @@ namespace LauncherWinUI.Pages
         {
             try
             {
-                string filePath = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                    "Command and Conquer Generals Zero Hour Data",
-                    "GeneralsOnlineData",
-                    "launcher.json");
+                string? filePath = GameDataPathService.GetGeneralsOnlineFilePath("launcher.json");
+                if (filePath == null)
+                    return;
 
                 _launcherSettings.prefer_experiemental_client = rbLiveClient.IsChecked == true;
                 File.WriteAllText(filePath, System.Text.Json.JsonSerializer.Serialize(
@@ -334,13 +322,9 @@ namespace LauncherWinUI.Pages
                 bool isEasyAntiCheat = false;
                 try
                 {
-                    string settingsPath = Path.Combine(
-                        Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                        "Command and Conquer Generals Zero Hour Data",
-                        "GeneralsOnlineData",
-                        "settings.json");
+                    string? settingsPath = GameDataPathService.GetGeneralsOnlineFilePath("settings.json");
 
-                    if (File.Exists(settingsPath))
+                    if (settingsPath != null && File.Exists(settingsPath))
                     {
                         var settings = System.Text.Json.JsonSerializer.Deserialize<GameSettingsFile>(
                             File.ReadAllText(settingsPath));
@@ -352,9 +336,11 @@ namespace LauncherWinUI.Pages
 
                 string exe;
                 if (ClientSelectorPanel.Visibility == Visibility.Visible)
-                    exe = rbTestEnv.IsChecked == true ? (isEasyAntiCheat ? "EAC_LaunchGeneralsOnline.exe" : "GeneralsOnlineZH_TestEnvironment.exe") : "GeneralsOnlineZH_60.exe";
-                else
-                    exe = isEasyAntiCheat ? "EAC_LaunchGeneralsOnline.exe" : "GeneralsOnlineZH_60.exe";
+					//exe = rbTestEnv.IsChecked == true ? (isEasyAntiCheat ? "EAC_LaunchGeneralsOnline.exe" : "GeneralsOnlineZH_TestEnvironment.exe") : "GeneralsOnlineZH_60.exe";
+					exe = rbTestEnv.IsChecked == true ? (isEasyAntiCheat ? "EAC_LaunchGeneralsOnline.exe" : "GeneralsOnlineZH_TestEnvironment.exe") : "GeneralsOnlineZH_60.exe";
+				else
+                    //exe = isEasyAntiCheat ? "EAC_LaunchGeneralsOnline.exe" : "GeneralsOnlineZH_60.exe";
+                    exe = "GeneralsOnlineZH_60.exe";
 
                 var startedProcess = Process.Start(exe, arguments);
 

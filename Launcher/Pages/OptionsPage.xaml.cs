@@ -460,22 +460,11 @@ namespace LauncherWinUI.Pages
             NavigationService?.GoBack();
         }
 
-        private string SettingsFilePath => Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "Command and Conquer Generals Zero Hour Data",
-            "GeneralsOnlineData",
-            "settings.json");
+        private string? SettingsFilePath => GameDataPathService.GetGeneralsOnlineFilePath("settings.json");
 
-        private string LauncherFilePath => Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "Command and Conquer Generals Zero Hour Data",
-            "GeneralsOnlineData",
-            "launcher.json");
+        private string? LauncherFilePath => GameDataPathService.GetGeneralsOnlineFilePath("launcher.json");
 
-        private string IniFilePath => Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "Command and Conquer Generals Zero Hour Data",
-            "Options.ini");
+        private string? IniFilePath => GameDataPathService.GetDataFilePath("Options.ini");
 
         private static int ParseInt(TextBox tb, int defaultVal)
         {
@@ -486,16 +475,22 @@ namespace LauncherWinUI.Pages
         {
             try
             {
-                if (!File.Exists(SettingsFilePath))
+                string? settingsPath = SettingsFilePath;
+                if (settingsPath == null)
                 {
                     _settings = new GameSettingsFile();
-                    File.WriteAllText(SettingsFilePath, System.Text.Json.JsonSerializer.Serialize(
+                }
+                else if (!File.Exists(settingsPath))
+                {
+                    _settings = new GameSettingsFile();
+                    Directory.CreateDirectory(Path.GetDirectoryName(settingsPath)!);
+                    File.WriteAllText(settingsPath, System.Text.Json.JsonSerializer.Serialize(
                         _settings, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
                 }
                 else
                 {
                     _settings = System.Text.Json.JsonSerializer.Deserialize<GameSettingsFile>(
-                        File.ReadAllText(SettingsFilePath)) ?? new();
+                        File.ReadAllText(settingsPath)) ?? new();
                 }
 
                 txtMaxCameraHeight.Text = ((int)_settings.camera.max_height_only_when_lobby_host).ToString();
@@ -574,8 +569,9 @@ namespace LauncherWinUI.Pages
                 if (firstPlugin != null)
                 {
                     _settings.plugins.anticheat = new DirectoryInfo(firstPlugin).Name;
-                    File.WriteAllText(SettingsFilePath, System.Text.Json.JsonSerializer.Serialize(
-                        _settings, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+                    if (SettingsFilePath is string settingsPath)
+                        File.WriteAllText(settingsPath, System.Text.Json.JsonSerializer.Serialize(
+                            _settings, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
                 }
             }
             catch
@@ -586,14 +582,15 @@ namespace LauncherWinUI.Pages
 
         private void LoadIniSettings()
         {
-            if (!File.Exists(IniFilePath))
+            string? iniPath = IniFilePath;
+            if (iniPath == null || !File.Exists(iniPath))
             {
                 WriteDefaultIni();
                 return;
             }
             try
             {
-                var dict = File.ReadLines(IniFilePath)
+                var dict = File.ReadLines(iniPath)
                     .Where(l => !string.IsNullOrWhiteSpace(l) && l.Contains(" = "))
                     .Select(l => l.Split(" = ", 2))
                     .Where(p => p.Length == 2)
@@ -625,7 +622,8 @@ namespace LauncherWinUI.Pages
                 "CursorCaptureEnabledInWindowedGame = no",
                 "CursorCaptureEnabledInWindowedMenu = no"
             };
-            File.WriteAllLines(IniFilePath, lines);
+            if (IniFilePath is string iniPath)
+                File.WriteAllLines(iniPath, lines);
             chkCursorLockWindowed.IsChecked = false;
             chkCursorLockFullscreen.IsChecked = true;
             chkEdgeScrollingFullscreen.IsChecked = true;
@@ -670,8 +668,12 @@ namespace LauncherWinUI.Pages
             if (cmbAnticheatPlugin.SelectedItem is ComboBoxItem pluginItem)
                 _settings.plugins.anticheat = pluginItem.Tag?.ToString() ?? "";
 
-            File.WriteAllText(SettingsFilePath, System.Text.Json.JsonSerializer.Serialize(
-                _settings, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+            if (SettingsFilePath is string settingsPath)
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(settingsPath)!);
+                File.WriteAllText(settingsPath, System.Text.Json.JsonSerializer.Serialize(
+                    _settings, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+            }
 
             SaveIniSettings();
         }
@@ -680,16 +682,20 @@ namespace LauncherWinUI.Pages
         {
             try
             {
-                var launcher = File.Exists(LauncherFilePath)
+                if (LauncherFilePath is not string launcherPath)
+                    return;
+
+                var launcher = File.Exists(launcherPath)
                     ? System.Text.Json.JsonSerializer.Deserialize<LauncherSettingsFile>(
-                        File.ReadAllText(LauncherFilePath)) ?? new()
+                        File.ReadAllText(launcherPath)) ?? new()
                     : new LauncherSettingsFile();
 
                 launcher.windowed = LaunchOptions.Windowed;
                 launcher.windowed_width = LaunchOptions.WindowedWidth;
                 launcher.windowed_height = LaunchOptions.WindowedHeight;
 
-                File.WriteAllText(LauncherFilePath, System.Text.Json.JsonSerializer.Serialize(
+                Directory.CreateDirectory(Path.GetDirectoryName(launcherPath)!);
+                File.WriteAllText(launcherPath, System.Text.Json.JsonSerializer.Serialize(
                     launcher, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
             }
             catch { }
@@ -702,8 +708,11 @@ namespace LauncherWinUI.Pages
             bool edgeFull = chkEdgeScrollingFullscreen.IsChecked == true;
             bool edgeWin = chkEdgeScrollingWindowed.IsChecked == true;
 
-            var lines = File.Exists(IniFilePath)
-                ? File.ReadAllLines(IniFilePath).ToList()
+            if (IniFilePath is not string iniPath)
+                return;
+
+            var lines = File.Exists(iniPath)
+                ? File.ReadAllLines(iniPath).ToList()
                 : new List<string>();
 
             bool wroteEdgeFull = false, wroteEdgeWin = false;
@@ -724,7 +733,7 @@ namespace LauncherWinUI.Pages
             if (!wroteCursorFull) { lines.Add($"CursorCaptureEnabledInFullscreenGame = {Y(cursorFull)}"); lines.Add($"CursorCaptureEnabledInFullscreenMenu = {Y(cursorFull)}"); }
             if (!wroteCursorWin) { lines.Add($"CursorCaptureEnabledInWindowedGame = {Y(cursorWin)}"); lines.Add($"CursorCaptureEnabledInWindowedMenu = {Y(cursorWin)}"); }
 
-            File.WriteAllLines(IniFilePath, lines);
+            File.WriteAllLines(iniPath, lines);
         }
 
         private static string Y(bool b) => b ? "yes" : "no";
